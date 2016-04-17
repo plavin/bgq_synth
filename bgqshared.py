@@ -25,12 +25,10 @@ def readNodeSet(file):
       list.append(ast.literal_eval(line))
   return list
 
-
 def addLinksForward(source, index, numHops, linkSet):
   last = source
   for i in range(1, numHops+1):
     oneHopForward = source[0:index] + (source[index]+i,) + source[index+1:len(source)]
-    print "routing from", last, "to", oneHopForward
     linkSet[(last,oneHopForward)] += 1
     last = oneHopForward
 
@@ -94,7 +92,7 @@ def doRouting(nodeList, linkSet):
 
       for i in range(len(Dim)):
         newSource = moveDirection(sortedDim[i][0], source, dest, linkSet)
-        
+        source = newSource
 
 def doRoutingPatrick(source, dest, linkSet):
   #move in each of the five directions, one at a time.  After a move in dimension i, source matches dest in dimension i
@@ -108,6 +106,13 @@ def doRoutingPatrick(source, dest, linkSet):
 
 #compute set of links that the first job uses
 def determineLinkSet(nodeListJobOne):
+  linksJobOne = defaultdict(lambda: 0)  #all entries initialized to zero
+ ########### doRoutingPatrick(nodeListJobOne[0], nodeListJobOne[1], linksJobOne)
+  doRouting(nodeListJobOne,linksJobOne)
+  return linksJobOne
+
+#compute set of links that the first job uses
+def determineLinkSetPatrick(nodeListJobOne):
   linksJobOne = defaultdict(lambda: 0)  #all entries initialized to zero
   doRoutingPatrick(nodeListJobOne[0], nodeListJobOne[1], linksJobOne)
   return linksJobOne
@@ -134,24 +139,21 @@ def main(argv1,argv2,ret):
   linksJobOne = determineLinkSet(nodeListJobOne)
   linksJobTwo, conflictLinks = determineLinkConflicts(nodeListJobTwo, linksJobOne)
   
-  print ""
-  sum = 0
-  for i in conflictLinks:
-    sum += 1
-    print i
-  print "total number of conflicted links", sum
-  print "Nodes Job 1: ", len(nodeListJobOne), " Nodes Job 2:  ", len(nodeListJobTwo), " Shared Nodes (should be 0): ", len(set(nodeListJobOne) & set(nodeListJobTwo))
-  print "traversals: {}".format(traversals(conflictLinks))
-  if(ret == 0):
+  if(ret==2):
+    print "total number of conflicted links", len(conflictLinks)
+    print "Nodes Job 1: ", len(nodeListJobOne), " Nodes Job 2:  ", len(nodeListJobTwo), " Shared Nodes (should be 0): ", len(set(nodeListJobOne) & set(nodeListJobTwo))
+    print "traversals: {}".format(traversals(conflictLinks))
+  elif(ret == 0):
+    print len(conflictLinks)
     return len(conflictLinks)
-  else:
+  elif(ret == 1):
     return conflictLinks
 
 if __name__ == "__main__":
   if(len(sys.argv) == 3):
-    sys.exit(main(sys.argv[1], sys.argv[2]),0)
+    sys.exit(main(sys.argv[1], sys.argv[2], 0))
   else:
-    sys.exit(main(sys.argv[1], sys.argv[2]),1)
+    sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3]))
 
 
 
