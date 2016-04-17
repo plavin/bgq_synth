@@ -1,0 +1,3 @@
+[submodule "bgqncl"]
+	path = bgqncl
+	url = https://github.com/LLNL/bgqncl
